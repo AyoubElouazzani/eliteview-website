@@ -8,45 +8,102 @@ import {
   Loader2, CheckCircle2, AlertCircle 
 } from 'lucide-react'
 import { useState, useTransition } from 'react'
-import { submitContactForm } from '@/app/actions/contact'
 
 export default function Home() {
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [description, setDescription] = useState('')
   const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
+  
+  // Field-specific validation error states
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [phoneError, setPhoneError] = useState<string | null>(null)
+  const [descriptionError, setDescriptionError] = useState<string | null>(null)
+  const [globalError, setGlobalError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
+    
+    // Reset all errors and success state
+    setNameError(null)
+    setPhoneError(null)
+    setDescriptionError(null)
+    setGlobalError(null)
     setSuccess(false)
 
-    if (!fullName.trim() || !phone.trim() || !description.trim()) {
-      setError('All fields are required.')
+    // Client-side validation
+    let hasError = false
+    if (!fullName.trim()) {
+      setNameError('Full name is required.')
+      hasError = true
+    }
+    if (!phone.trim()) {
+      setPhoneError('Phone number is required.')
+      hasError = true
+    }
+    if (!description.trim()) {
+      setDescriptionError('Description of purpose is required.')
+      hasError = true
+    }
+
+    if (hasError) {
       return
     }
 
     startTransition(async () => {
-      const res = await submitContactForm({ fullName, phone, description })
-      if (res.success) {
-        setSuccess(true)
-        
-        // Open WhatsApp pre-filled link
-        const supportNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '212600000000'
-        const text = `Hello StreamFlow Support! I'd like to get in touch.\n\nName: ${fullName.trim()}\nPhone: ${phone.trim()}\nPurpose: ${description.trim()}`
-        const encodedText = encodeURIComponent(text)
-        const whatsappUrl = `https://wa.me/${supportNumber.replace(/\+/g, '')}?text=${encodedText}`
-        
-        window.open(whatsappUrl, '_blank')
-        
-        // Clear fields
-        setFullName('')
-        setPhone('')
-        setDescription('')
-      } else {
-        setError(res.error || 'Something went wrong. Please try again.')
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fullName: fullName.trim(),
+            phone: phone.trim(),
+            description: description.trim(),
+          }),
+        })
+
+        const res = await response.json()
+
+        if (response.ok && res.success) {
+          setSuccess(true)
+          
+          // Open WhatsApp pre-filled link
+          const supportNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '212600000000'
+          const text = `Hello StreamFlow Support! I'd like to get in touch.\n\nName: ${fullName.trim()}\nPhone: ${phone.trim()}\nPurpose: ${description.trim()}`
+          const encodedText = encodeURIComponent(text)
+          const whatsappUrl = `https://wa.me/${supportNumber.replace(/\+/g, '')}?text=${encodedText}`
+          
+          window.location.href = whatsappUrl
+          
+          // Clear fields
+          setFullName('')
+          setPhone('')
+          setDescription('')
+        } else {
+          // Handle backend validation or server errors
+          const errMsg = res.error || 'Something went wrong. Please try again.'
+          if (response.status === 400) {
+            if (errMsg.toLowerCase().includes('name')) {
+              setNameError(errMsg)
+            } else if (errMsg.toLowerCase().includes('phone')) {
+              setPhoneError(errMsg)
+            } else if (errMsg.toLowerCase().includes('description')) {
+              setDescriptionError(errMsg)
+            } else {
+              setGlobalError(errMsg)
+            }
+          } else {
+            setGlobalError(errMsg)
+          }
+          console.error('[Server Error] Contact submission failed:', res)
+        }
+      } catch (err: any) {
+        // Handle network connection errors
+        setGlobalError('Network connection failed. Please check your internet connection and try again.')
+        console.error('[Network/Client Error] Contact submission exception:', err)
       }
     })
   }
@@ -347,7 +404,7 @@ export default function Home() {
           <div className="relative rounded-2xl border border-border bg-card/45 p-8 shadow-xl backdrop-blur-md">
             <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-accent/5 rounded-2xl pointer-events-none" />
             
-            <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+            <form noValidate onSubmit={handleSubmit} className="space-y-6 relative z-10">
               <div className="space-y-2">
                 <label htmlFor="fullName" className="text-sm font-medium text-white block">
                   Full Name
@@ -359,12 +416,21 @@ export default function Home() {
                     type="text"
                     required
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    onChange={(e) => {
+                      setFullName(e.target.value)
+                      if (e.target.value.trim()) setNameError(null)
+                    }}
                     placeholder="John Doe"
                     disabled={isPending}
                     className="w-full bg-background/50 border border-border rounded-lg pl-10 pr-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   />
                 </div>
+                {nameError && (
+                  <p className="text-xs text-destructive mt-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {nameError}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -378,12 +444,21 @@ export default function Home() {
                     type="tel"
                     required
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      setPhone(e.target.value)
+                      if (e.target.value.trim()) setPhoneError(null)
+                    }}
                     placeholder="+1 (555) 000-0000"
                     disabled={isPending}
                     className="w-full bg-background/50 border border-border rounded-lg pl-10 pr-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   />
                 </div>
+                {phoneError && (
+                  <p className="text-xs text-destructive mt-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {phoneError}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -397,25 +472,34 @@ export default function Home() {
                     required
                     rows={4}
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => {
+                      setDescription(e.target.value)
+                      if (e.target.value.trim()) setDescriptionError(null)
+                    }}
                     placeholder="Tell us what you need help with (e.g. package issues, device setup)..."
                     disabled={isPending}
                     className="w-full bg-background/50 border border-border rounded-lg pl-10 pr-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all resize-none"
                   />
                 </div>
+                {descriptionError && (
+                  <p className="text-xs text-destructive mt-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {descriptionError}
+                  </p>
+                )}
               </div>
 
-              {error && (
+              {globalError && (
                 <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-lg border border-destructive/20 animate-in fade-in slide-in-from-top-1">
                   <AlertCircle className="w-5 h-5 shrink-0" />
-                  <span>{error}</span>
+                  <span>{globalError}</span>
                 </div>
               )}
 
               {success && (
                 <div className="flex items-center gap-2 text-sm text-green-400 bg-green-950/20 p-3 rounded-lg border border-green-800/30 animate-in fade-in slide-in-from-top-1">
                   <CheckCircle2 className="w-5 h-5 shrink-0" />
-                  <span>Submission successful! Opening WhatsApp chat...</span>
+                  <span>Thank you! Your message has been sent successfully. Opening WhatsApp chat...</span>
                 </div>
               )}
 
@@ -427,7 +511,7 @@ export default function Home() {
                 {isPending ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Processing Submission...
+                    Sending...
                   </>
                 ) : (
                   <>

@@ -11,11 +11,6 @@ export const metadata: Metadata = {
   description: 'Experience unlimited streaming with StreamFlow. Premium IPTV service with 1000+ channels, movies, and on-demand content.',
   generator: 'v0.app',
   keywords: ['IPTV', 'streaming', 'TV', 'movies', 'entertainment', 'subscription'],
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    userScalable: false,
-  },
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
