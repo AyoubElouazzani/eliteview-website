@@ -54,27 +54,22 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Navigation */}
-      <nav className="border-b border-border sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav className="border-b border-border/40 sticky top-0 z-50 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 w-48 shrink-0">
             <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
               <Tv className="w-6 h-6 text-white" />
             </div>
             <span className="text-xl font-bold text-white">StreamFlow</span>
           </div>
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition">Features</a>
-            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition">Pricing</a>
-            <a href="#contact" className="text-muted-foreground hover:text-foreground transition">Contact Support</a>
+          
+          <div className="hidden md:flex items-center justify-center flex-1 space-x-8">
+            <a href="#features" className="text-muted-foreground hover:text-foreground transition duration-200 text-sm font-medium tracking-wide">Features</a>
+            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition duration-200 text-sm font-medium tracking-wide">Pricing</a>
+            <a href="#contact" className="text-muted-foreground hover:text-foreground transition duration-200 text-sm font-medium tracking-wide">Contact Support</a>
           </div>
-          <div className="flex items-center space-x-4">
-            <Link href="/sign-in">
-              <Button variant="ghost" className="text-foreground hover:bg-card">Sign In</Button>
-            </Link>
-            <Link href="/sign-up">
-              <Button className="bg-primary hover:bg-blue-600">Get Started</Button>
-            </Link>
-          </div>
+
+          <div className="hidden md:block w-48 shrink-0" />
         </div>
       </nav>
 
@@ -82,48 +77,75 @@ export default function Home() {
       <section className="relative py-20 md:py-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 rounded-full blur-3xl -z-10" />
         
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight">
-                Premium IPTV Entertainment at Your Fingertips
+        <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="space-y-8 max-w-xl">
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight tracking-tight animate-fade-in-up">
+                Premium IPTV <br className="hidden lg:inline" />
+                Entertainment <br className="hidden lg:inline" />
+                at Your Fingertips
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground">
+              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed animate-fade-in-up animation-delay-100">
                 Stream 1000+ channels, exclusive movies, and live sports. Watch anywhere, anytime with crystal-clear quality.
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/sign-up">
-                <Button size="lg" className="bg-primary hover:bg-blue-600 text-white w-full sm:w-auto">
-                  <Play className="mr-2 w-5 h-5" />
+            
+            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up animation-delay-200">
+              <Link href="/sign-up" className="w-full sm:w-auto">
+                <Button 
+                  size="lg" 
+                  className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:via-indigo-500 hover:to-cyan-400 text-white font-semibold shadow-lg shadow-blue-500/25 border-0 hover:scale-105 active:scale-95 transition-all duration-300 h-12 px-6 rounded-xl flex items-center justify-center gap-2"
+                >
+                  <Play className="w-5 h-5 fill-white/20" />
                   Start Free Trial
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="border-border text-foreground hover:bg-card w-full sm:w-auto">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                onClick={() => {
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="border-border text-foreground hover:bg-card w-full sm:w-auto hover:scale-105 transition-all duration-300 h-12 px-6 rounded-xl"
+              >
                 Learn More
               </Button>
             </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground pt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-accent rounded-full" />
-                <span>No Credit Card Required</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-accent rounded-full" />
-                <span>Cancel Anytime</span>
+
+            {/* Premium Trust Badges */}
+            <div className="pt-4 animate-fade-in-up animation-delay-300">
+              <div className="flex flex-wrap gap-3">
+                {[
+                  '1000+ Live Channels',
+                  '4K & Full HD',
+                  'Movies & Series',
+                  'Live Sports',
+                  'Instant Activation'
+                ].map((badge, idx) => (
+                  <div 
+                    key={idx} 
+                    className="flex items-center space-x-2 text-sm bg-card/40 border border-border/40 px-3 py-1.5 rounded-full hover:border-primary/30 transition duration-300"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-accent fill-accent/10" />
+                    <span className="text-foreground/90 font-medium">{badge}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Hero Visual */}
-          <div className="relative h-96 md:h-full">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl" />
-            <div className="absolute inset-4 bg-gradient-to-br from-card to-card/50 rounded-xl border border-border/50 flex items-center justify-center">
-              <div className="text-center space-y-4">
-                <Play className="w-16 h-16 text-primary mx-auto" />
-                <p className="text-muted-foreground">Streaming Experience Preview</p>
-              </div>
-            </div>
+          {/* Hero Visual - Premium Lifestyle Image with scale-zoom and blue glow */}
+          <div className="relative h-[350px] md:h-[450px] lg:h-[500px] w-full overflow-hidden rounded-2xl border border-border/40 shadow-[0_0_50px_-12px_rgba(59,130,246,0.35)] animate-fade-in-up animation-delay-150 group">
+            {/* Lifestyle Image with smooth zoom transition */}
+            <img 
+              src="/hero_lifestyle.png" 
+              alt="Premium IPTV streaming experience" 
+              className="object-cover w-full h-full animate-slow-zoom transition-transform duration-700 group-hover:scale-105" 
+            />
+            {/* Dark overlay (35%) */}
+            <div className="absolute inset-0 bg-black/35 pointer-events-none" />
+            {/* Soft blue glow border accent */}
+            <div className="absolute inset-0 rounded-2xl border border-primary/20 pointer-events-none" />
           </div>
         </div>
       </section>
